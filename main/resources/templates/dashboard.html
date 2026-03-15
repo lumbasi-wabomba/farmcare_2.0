@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Farmcare</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f4f4;
+            color: #333;
+        }
+        .header {
+            background: #4CAF50;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .logout-btn {
+            background: white;
+            color: #4CAF50;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .welcome {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .modules {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .module {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .module h3 {
+            color: #4CAF50;
+            margin-top: 0;
+        }
+        .module p {
+            color: #666;
+        }
+        .module-link {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .module-link:hover {
+            background: #45a049;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-card h4 {
+            margin: 0 0 10px 0;
+            color: #4CAF50;
+        }
+        .stat-card .number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Farmcare Dashboard</h1>
+        <a th:href="@{/logout}" href="/logout" class="logout-btn">Logout</a>
+    </div>
+
+    <div class="container">
+        <div class="welcome">
+            <h2>Welcome, <span th:text="${user.firstName + ' ' + user.lastName}">User</span>!</h2>
+            <p>Role: <span th:text="${user.role}">Role</span></p>
+        </div>
+
+        <div class="modules">
+            <div class="module" th:if="${#strings.equalsIgnoreCase(user.role, 'admin') or #strings.equalsIgnoreCase(user.role, 'superuser')}">
+                <h3>Stock Management</h3>
+                <a th:href="@{/stock}" href="/stock" class="module-link">Stock</a>
+            </div>
+
+            <div class="module">
+                <h3>Sales Tracking</h3>
+                <a th:href="@{/sales}" href="/sales" class="module-link">Sales</a>
+            </div>
+
+            <div class="module">
+                <h3>Expense Monitoring</h3>
+                <a th:href="@{/expenses}" href="/expenses" class="module-link">Expenses</a>
+            </div>
+
+            <div class="module" th:if="${#strings.equalsIgnoreCase(user.role, 'admin') or #strings.equalsIgnoreCase(user.role, 'superuser')}">
+                <h3>User Management</h3>
+                <a th:href="@{/users}" href="/users" class="module-link">Users</a>
+            </div>
+
+            <div class="module" th:if="${#strings.equalsIgnoreCase(user.role, 'admin') or #strings.equalsIgnoreCase(user.role, 'superuser')}">
+                <h3>Reports</h3>
+                <a th:href="@{/reports}" href="/reports" class="module-link">View Reports</a>
+            </div>
+
+            <div class="module">
+                <h3>Purchases</h3>
+                <a th:href="@{/purchases}" href="/purchases" class="module-link">Purchases</a>
+            </div>
+        </div>
+
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales - Farmcare</title>
+    <style>
+        :root {
+            --green: #4CAF50;
+            --green-dark: #45a049;
+            --bg: #f4f4f4;
+            --text: #333;
+            --muted: #666;
+            --danger: #b71c1c;
+            --card: #fff;
+            --border: #e6e6e6;
+        }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+        .header { background: var(--green); color: white; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { margin: 0; font-size: 1.25rem; }
+        .header .actions { display: flex; gap: 10px; }
+        .header a { background: white; color: var(--green); padding: 10px 14px; border-radius: 6px; text-decoration: none; font-weight: 600; }
+        .container { max-width: 1200px; margin: 18px auto; padding: 0 16px 24px; }
+        .card { background: var(--card); padding: 16px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); margin-bottom: 14px; }
+        .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+        .field { display: flex; flex-direction: column; gap: 6px; min-width: 180px; flex: 1; }
+        label { font-size: 0.85rem; color: var(--muted); }
+        input { padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; }
+        .btn { background: var(--green); color: white; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-weight: 700; }
+        .btn:hover { background: var(--green-dark); }
+        .btn.danger { background: var(--danger); }
+        .btn.danger:hover { background: #8e1515; }
+        .msg { padding: 10px 12px; border-radius: 6px; margin-bottom: 12px; }
+        .msg.ok { background: #e8f5e9; border: 1px solid #c8e6c9; color: #1b5e20; }
+        .msg.err { background: #ffebee; border: 1px solid #ffcdd2; color: #b71c1c; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+        .stat { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+        .stat h3 { margin: 0 0 8px 0; font-size: 0.95rem; color: var(--muted); font-weight: 700; }
+        .stat .n { font-size: 1.5rem; font-weight: 800; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+        th { color: var(--muted); font-weight: 700; font-size: 0.9rem; }
+        .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 0.92rem; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>Sales</h1>
+    <div class="actions">
+        <a th:href="@{/dashboard}" href="/dashboard">Dashboard</a>
+        <a th:href="@{/logout}" href="/logout">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    <div th:if="${message}" class="msg ok" th:text="${message}">Saved.</div>
+    <div th:if="${error}" class="msg err" th:text="${error}">Error.</div>
+
+    <div class="card">
+        <form method="post" th:action="@{/sales/add}" action="/sales/add">
+            <div class="row">
+                <div class="field">
+                    <label>Customer Name</label>
+                    <input name="customerName" placeholder="Walk-in customer">
+                </div>
+                <div class="field">
+                    <label>Product Name</label>
+                    <input name="productName" required placeholder="e.g. Dairy Meal">
+                </div>
+                <div class="field" style="min-width: 160px; flex: 0 0 auto;">
+                    <label>Sale Date</label>
+                    <input name="saleDate" type="date" required th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}">
+                </div>
+                <div class="field" style="min-width: 140px; flex: 0 0 auto;">
+                    <label>Quantity</label>
+                    <input name="quantity" type="number" min="1" step="1" required>
+                </div>
+                <div class="field" style="min-width: 180px; flex: 0 0 auto;">
+                    <button class="btn" type="submit">Record Sale</button>
+                </div>
+            </div>
+        </form>
+        <div style="margin-top: 10px; color: var(--muted); font-size: 0.9rem;">
+            Unit price uses the stock selling price; stock quantity is reduced automatically.
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 style="margin: 0 0 10px 0; font-size: 1.05rem;">Today (<span th:text="${today}">YYYY-MM-DD</span>)</h2>
+        <div class="stats">
+            <div class="stat">
+                <h3>Total Sales</h3>
+                <div class="n" th:text="${#numbers.formatDecimal(todaySalesTotal, 1, 2)}">0.00</div>
+            </div>
+            <div class="stat">
+                <h3>Total Expenses</h3>
+                <div class="n" th:text="${#numbers.formatDecimal(todayExpenseTotal, 1, 2)}">0.00</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" th:if="${isAdminOrSuperuser}">
+        <h2 style="margin: 0 0 10px 0; font-size: 1.05rem;">This Month (<span th:text="${monthStart}">YYYY-MM-DD</span> to <span th:text="${monthEnd}">YYYY-MM-DD</span>)</h2>
+        <div class="stats">
+            <div class="stat">
+                <h3>Total Sales</h3>
+                <div class="n" th:text="${#numbers.formatDecimal(monthSalesTotal, 1, 2)}">0.00</div>
+            </div>
+            <div class="stat">
+                <h3>Total Expenses</h3>
+                <div class="n" th:text="${#numbers.formatDecimal(monthExpenseTotal, 1, 2)}">0.00</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" th:if="${isAdminOrSuperuser}">
+        <h2 style="margin: 0 0 10px 0; font-size: 1.05rem;">Custom Range</h2>
+        <form method="get" th:action="@{/sales}" action="/sales" style="display:flex; gap:10px; flex-wrap:wrap; align-items:end; margin-bottom:12px;">
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                <label style="font-size: 0.85rem; color: var(--muted);">From</label>
+                <input type="date" name="from" th:value="${rangeFrom}">
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                <label style="font-size: 0.85rem; color: var(--muted);">To</label>
+                <input type="date" name="to" th:value="${rangeTo}">
+            </div>
+            <button class="btn" type="submit">Apply</button>
+        </form>
+
+        <div th:if="${!hasRange}" style="color: var(--muted);">Select a date range to view totals.</div>
+        <div th:if="${hasRange}">
+            <div style="color: var(--muted); margin-bottom: 10px;">
+                Showing <span th:text="${rangeFrom}">from</span> to <span th:text="${rangeTo}">to</span>
+            </div>
+            <div class="stats">
+                <div class="stat">
+                    <h3>Total Sales</h3>
+                    <div class="n" th:text="${#numbers.formatDecimal(rangeSalesTotal, 1, 2)}">0.00</div>
+                </div>
+                <div class="stat">
+                    <h3>Total Expenses</h3>
+                    <div class="n" th:text="${#numbers.formatDecimal(rangeExpenseTotal, 1, 2)}">0.00</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <table>
+            <thead>
+            <tr>
+                <th style="width: 90px;">ID</th>
+                <th th:if="${#strings.equalsIgnoreCase(user.role,'admin') or #strings.equalsIgnoreCase(user.role,'superuser')}">User</th>
+                <th>Customer</th>
+                <th style="width: 140px;">Date</th>
+                <th>Product</th>
+                <th style="width: 120px;">Unit Price</th>
+                <th style="width: 110px;">Qty</th>
+                <th style="width: 120px;">Total</th>
+                <th style="width: 120px;">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(sales)}">
+                <td th:attr="colspan=${(#strings.equalsIgnoreCase(user.role,'admin') or #strings.equalsIgnoreCase(user.role,'superuser')) ? 9 : 8}"
+                    style="color: var(--muted); padding: 18px;">No sales recorded.</td>
+            </tr>
+            <tr th:each="s : ${sales}">
+                <td class="mono" th:text="${s.salesID}">0</td>
+                <td th:if="${#strings.equalsIgnoreCase(user.role,'admin') or #strings.equalsIgnoreCase(user.role,'superuser')}" th:text="${s.username}">user</td>
+                <td th:text="${s.customerName}">Customer</td>
+                <td th:text="${s.saleDate != null ? #dates.format(s.saleDate, 'yyyy-MM-dd') : ''}">2026-03-15</td>
+                <td th:text="${s.productName}">Product</td>
+                <td th:text="${#numbers.formatDecimal(s.unitPrice, 1, 2)}">0.00</td>
+                <td th:text="${s.quantity}">0</td>
+                <td th:text="${#numbers.formatDecimal(s.total, 1, 2)}">0.00</td>
+                <td>
+                    <form method="post" th:action="@{/sales/delete}" action="/sales/delete" style="margin:0;" onsubmit="return confirm('Delete this sale?')">
+                        <input type="hidden" name="salesID" th:value="${s.salesID}">
+                        <button class="btn danger" type="submit">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

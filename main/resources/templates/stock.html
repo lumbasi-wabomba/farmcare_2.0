@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock - Farmcare</title>
+    <style>
+        :root {
+            --green: #4CAF50;
+            --green-dark: #45a049;
+            --bg: #f4f4f4;
+            --text: #333;
+            --muted: #666;
+            --danger: #b71c1c;
+            --card: #fff;
+            --border: #e6e6e6;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: var(--text);
+        }
+        .header {
+            background: var(--green);
+            color: white;
+            padding: 18px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+        .header .actions {
+            display: flex;
+            gap: 10px;
+        }
+        .header a {
+            background: white;
+            color: var(--green);
+            border: none;
+            padding: 10px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 18px auto;
+            padding: 0 16px 24px;
+        }
+        .card {
+            background: var(--card);
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            margin-bottom: 14px;
+        }
+        .row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 160px;
+            flex: 1; }
+        label {
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+        input, select, textarea {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 38px;
+        }
+        .btn {
+            background: var(--green); color: white;
+            border: none; padding: 10px 14px;
+            border-radius: 6px; cursor: pointer;
+            font-weight: 700;
+        }
+        .btn:hover {
+            background: var(--green-dark);
+        }
+        .btn.secondary {
+            background: #607d8b;
+        }
+        .btn.secondary:hover {
+            background: #546e7a;
+        }
+        .btn.danger {
+            background: var(--danger);
+        }
+        .btn.danger:hover {
+            background: #8e1515;
+        }
+        .msg {
+            padding: 10px 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+        .msg.ok {
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #1b5e20;
+        }
+        .msg.err {
+            background: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #b71c1c; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            color: var(--muted);
+            font-weight: 700;
+            font-size: 0.9rem; }
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+            font-size: 0.92rem;
+        }
+        .qty-low {
+            color: #b71c1c;
+            font-weight: 700; }
+        .table-actions {
+            display: flex;
+            gap: 8px; }
+        .pager {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .pager .links {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .page-link {
+            display: inline-block;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: white;
+            color: var(--text);
+            text-decoration: none;
+        }
+        .page-link.active {
+            background: var(--green);
+            border-color: var(--green);
+            color: white;
+            font-weight: 700;
+        }
+        .page-link.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        dialog {
+            border: none;
+            border-radius: 10px;
+            padding: 0;
+            width: min(720px, calc(100% - 24px));
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        }
+        dialog::backdrop {
+            background: rgba(0,0,0,0.45);
+        }
+        .dialog-head {
+            padding: 14px 16px;
+            background: #f8f8f8;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .dialog-body {
+            padding: 16px;
+        }
+        .dialog-head h3 {
+            margin: 0;
+            font-size: 1.05rem;
+        }
+        .x { background:
+                transparent;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #444;
+        }
+        @media (max-width: 700px) {
+            th:nth-child(3), td:nth-child(3),
+            th:nth-child(4), td:nth-child(4),
+            th:nth-child(5), td:nth-child(5) { display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>Stock Management</h1>
+    <div class="actions">
+        <a th:href="@{/dashboard}" href="/dashboard">Dashboard</a>
+        <a th:href="@{/logout}" href="/logout">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    <div th:if="${message}" class="msg ok" th:text="${message}">Saved.</div>
+    <div th:if="${error}" class="msg err" th:text="${error}">Error.</div>
+
+    <div class="card">
+        <div class="row">
+            <div class="field">
+                <label for="sort">Order</label>
+                <select id="sort" name="sort" onchange="applySort(this.value)">
+                    <option value="quantity" th:selected="${sort == 'quantity'}">Highest quantity</option>
+                    <option value="name" th:selected="${sort == 'name'}">A to Z</option>
+                </select>
+            </div>
+            <div class="field" style="min-width: 240px;">
+                <label>Showing</label>
+                <div style="padding: 10px 0; color: var(--muted);"
+                     th:with="from=${totalItems == 0 ? 0 : ((page - 1) * pageSize + 1)}, to=${T(java.lang.Math).min(totalItems, page * pageSize)}"
+                     th:text="${from + ' - ' + to + ' of ' + totalItems}">
+                    0 - 0 of 0
+                </div>
+            </div>
+            <div class="field" style="min-width: 200px; flex: 0 0 auto;">
+                <button class="btn" type="button" onclick="document.getElementById('addDialog').showModal()">Add Stock</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <table>
+            <thead>
+            <tr>
+                <th style="width: 120px;">ID</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Unit BP</th>
+                <th>Unit SP</th>
+                <th style="width: 110px;">Quantity</th>
+                <th style="width: 120px;">Reorder</th>
+                <th style="width: 170px;">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(stocks)}">
+                <td colspan="8" style="color: var(--muted); padding: 18px;">No stock items found.</td>
+            </tr>
+            <tr th:each="s : ${stocks}"
+                th:attr="data-id=${s.productID},data-name=${s.productName},data-desc=${s.productDescription},data-cat=${s.category},data-bp=${s.unitBp},data-sp=${s.unitSp},data-qty=${s.quantity},data-rlvl=${s.reorderLevel}">
+                <td class="mono" th:text="${s.productID}">P001</td>
+                <td>
+                    <div th:text="${s.productName}">Product</div>
+                    <div style="color: var(--muted); font-size: 0.85rem;" th:text="${s.productDescription}">Description</div>
+                </td>
+                <td th:text="${s.category}">Category</td>
+                <td th:text="${#numbers.formatDecimal(s.unitBp, 1, 2)}">0.00</td>
+                <td th:text="${#numbers.formatDecimal(s.unitSp, 1, 2)}">0.00</td>
+                <td th:classappend="${s.quantity <= s.reorderLevel} ? 'qty-low' : ''" th:text="${s.quantity}">0</td>
+                <td th:text="${s.reorderLevel}">0</td>
+                <td>
+                    <div class="table-actions">
+                        <button class="btn secondary" type="button" onclick="openEdit(this)">Edit</button>
+                        <form method="post" th:action="@{/stock/delete}" action="/stock/delete" style="margin: 0;" onsubmit="return confirm('Delete this stock item?')">
+                            <input type="hidden" name="productID" th:value="${s.productID}">
+                            <button class="btn danger" type="submit">Delete</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <div class="pager" th:with="start=${T(java.lang.Math).max(1, page - 3)}, end=${T(java.lang.Math).min(totalPages, page + 3)}">
+            <div class="links">
+                <a class="page-link" th:classappend="${page <= 1} ? 'disabled' : ''"
+                   th:href="@{/stock(page=${page-1},sort=${sort})}">Prev</a>
+                <a class="page-link" th:each="p : ${#numbers.sequence(start, end)}"
+                   th:classappend="${p == page} ? 'active' : ''"
+                   th:href="@{/stock(page=${p},sort=${sort})}"
+                   th:text="${p}">1</a>
+                <a class="page-link" th:classappend="${page >= totalPages} ? 'disabled' : ''"
+                   th:href="@{/stock(page=${page+1},sort=${sort})}">Next</a>
+            </div>
+            <div style="color: var(--muted); font-size: 0.9rem;" th:text="'Page ' + page + ' of ' + totalPages">Page</div>
+        </div>
+    </div>
+</div>
+
+<dialog id="addDialog">
+    <div class="dialog-head">
+        <h3>Add Stock</h3>
+        <button class="x" type="button" onclick="document.getElementById('addDialog').close()" aria-label="Close">×</button>
+    </div>
+    <div class="dialog-body">
+        <form method="post" th:action="@{/stock/add}" action="/stock/add">
+            <div class="row">
+                <div class="field" style="min-width: 260px;">
+                    <label>Name</label>
+                    <input name="productName" required>
+                </div>
+                <div class="field">
+                    <label>Category</label>
+                    <input name="category">
+                </div>
+            </div>
+            <div class="row">
+                <div class="field" style="min-width: 320px;">
+                    <label>Description</label>
+                    <textarea name="productDescription"></textarea>
+                </div>
+            </div>
+            <div class="row">
+                <div class="field">
+                    <label>Unit BP</label>
+                    <input name="unitBp" type="number" step="0.01" min="0" required>
+                </div>
+                <div class="field">
+                    <label>Unit SP</label>
+                    <input name="unitSp" type="number" step="0.01" min="0" required>
+                </div>
+                <div class="field">
+                    <label>Quantity</label>
+                    <input name="quantity" type="number" step="1" min="0" required>
+                </div>
+                <div class="field">
+                    <label>Reorder Level</label>
+                    <input name="reorderLevel" type="number" step="1" min="0" required>
+                </div>
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;">
+                <button class="btn secondary" type="button" onclick="document.getElementById('addDialog').close()">Cancel</button>
+                <button class="btn" type="submit">Add</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<dialog id="editDialog">
+    <div class="dialog-head">
+        <h3>Edit Stock</h3>
+        <button class="x" type="button" onclick="document.getElementById('editDialog').close()" aria-label="Close">×</button>
+    </div>
+    <div class="dialog-body">
+        <form method="post" th:action="@{/stock/update}" action="/stock/update">
+            <input type="hidden" name="productID" id="edit_productID">
+            <div class="row">
+                <div class="field">
+                    <label>Product ID</label>
+                    <input id="edit_productID_readonly" disabled>
+                </div>
+                <div class="field" style="min-width: 260px;">
+                    <label>Name</label>
+                    <input name="productName" id="edit_productName" required>
+                </div>
+                <div class="field">
+                    <label>Category</label>
+                    <input name="category" id="edit_category">
+                </div>
+            </div>
+            <div class="row">
+                <div class="field" style="min-width: 320px;">
+                    <label>Description</label>
+                    <textarea name="productDescription" id="edit_productDescription"></textarea>
+                </div>
+            </div>
+            <div class="row">
+                <div class="field">
+                    <label>Unit BP</label>
+                    <input name="unitBp" id="edit_unitBp" type="number" step="0.01" min="0" required>
+                </div>
+                <div class="field">
+                    <label>Unit SP</label>
+                    <input name="unitSp" id="edit_unitSp" type="number" step="0.01" min="0" required>
+                </div>
+                <div class="field">
+                    <label>Quantity</label>
+                    <input name="quantity" id="edit_quantity" type="number" step="1" min="0" required>
+                </div>
+                <div class="field">
+                    <label>Reorder Level</label>
+                    <input name="reorderLevel" id="edit_reorderLevel" type="number" step="1" min="0" required>
+                </div>
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;">
+                <button class="btn secondary" type="button" onclick="document.getElementById('editDialog').close()">Cancel</button>
+                <button class="btn" type="submit">Save</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<script>
+    function applySort(sort) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('sort', sort);
+        url.searchParams.set('page', '1');
+        window.location.href = url.toString();
+    }
+
+    function openEdit(btn) {
+        const tr = btn.closest('tr');
+        if (!tr) return;
+        const d = tr.dataset;
+
+        document.getElementById('edit_productID').value = d.id || '';
+        document.getElementById('edit_productID_readonly').value = d.id || '';
+        document.getElementById('edit_productName').value = d.name || '';
+        document.getElementById('edit_productDescription').value = d.desc || '';
+        document.getElementById('edit_category').value = d.cat || '';
+        document.getElementById('edit_unitBp').value = d.bp || '';
+        document.getElementById('edit_unitSp').value = d.sp || '';
+        document.getElementById('edit_quantity').value = d.qty || '0';
+        document.getElementById('edit_reorderLevel').value = d.rlvl || '0';
+
+        document.getElementById('editDialog').showModal();
+    }
+</script>
+</body>
+</html>

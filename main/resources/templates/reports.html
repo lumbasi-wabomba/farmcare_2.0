@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Farmcare</title>
+    <style>
+        :root {
+            --green: #4CAF50;
+            --green-dark: #45a049;
+            --bg: #f4f4f4;
+            --text: #333;
+            --muted: #666;
+            --card: #fff;
+            --border: #e6e6e6;
+        }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+        .header { background: var(--green); color: white; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { margin: 0; font-size: 1.25rem; }
+        .header .actions { display: flex; gap: 10px; }
+        .header a { background: white; color: var(--green); padding: 10px 14px; border-radius: 6px; text-decoration: none; font-weight: 600; }
+        .container { max-width: 1200px; margin: 18px auto; padding: 0 16px 24px; }
+        .card { background: var(--card); padding: 16px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); margin-bottom: 14px; }
+        .msg { padding: 10px 12px; border-radius: 6px; margin-bottom: 12px; background: #ffebee; border: 1px solid #ffcdd2; color: #b71c1c; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+        .stat { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+        .stat h3 { margin: 0 0 8px 0; font-size: 0.95rem; color: var(--muted); font-weight: 700; }
+        .stat .n { font-size: 1.5rem; font-weight: 800; }
+        input { padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; }
+        .btn { background: var(--green); color: white; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-weight: 700; }
+        .btn:hover { background: var(--green-dark); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+        th { color: var(--muted); font-weight: 700; font-size: 0.9rem; }
+        .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 0.92rem; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>Reports</h1>
+    <div class="actions">
+        <a th:href="@{/dashboard}" href="/dashboard">Dashboard</a>
+        <a th:href="@{/stock}" href="/stock">Stock</a>
+        <a th:href="@{/logout}" href="/logout">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    <div th:if="${error}" class="msg" th:text="${error}">Error.</div>
+
+    <div class="card">
+        <div class="stats">
+            <div class="stat">
+                <h3>Total Sales Revenue</h3>
+                <div class="n" th:text="${#numbers.formatDecimal(totalSales, 1, 2)}">0.00</div>
+            </div>
+            <div class="stat">
+                <h3>Total Expenses</h3>
+                <div class="n" th:text="${#numbers.formatDecimal(totalExpenses, 1, 2)}">0.00</div>
+            </div>
+            <div class="stat">
+                <h3>Total Purchase Cost</h3>
+                <div class="n" th:text="${#numbers.formatDecimal(totalPurchases, 1, 2)}">0.00</div>
+            </div>
+            <div class="stat">
+                <h3>Stock Value (BP)</h3>
+                <div class="n" th:text="${#numbers.formatDecimal(stockValue, 1, 2)}">0.00</div>
+            </div>
+            <div class="stat">
+                <h3>Stock Value (SP)</h3>
+                <div class="n" th:text="${#numbers.formatDecimal(sellingValue, 1, 2)}">0.00</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 style="margin: 0 0 10px 0; font-size: 1.05rem;">Today (<span th:text="${today}">YYYY-MM-DD</span>)</h2>
+        <div class="stats">
+            <div class="stat">
+                <h3>Revenue</h3>
+                <div class="n" th:text="${#numbers.formatDecimal(todayRevenue, 1, 2)}">0.00</div>
+            </div>
+            <div class="stat">
+                <h3>Purchase Cost</h3>
+                <div class="n" th:text="${#numbers.formatDecimal(todayCost, 1, 2)}">0.00</div>
+            </div>
+            <div class="stat">
+                <h3>Expenses</h3>
+                <div class="n" th:text="${#numbers.formatDecimal(todayExpense, 1, 2)}">0.00</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 style="margin: 0 0 10px 0; font-size: 1.05rem;">This Month (<span th:text="${monthStart}">YYYY-MM-DD</span> to <span th:text="${monthEnd}">YYYY-MM-DD</span>)</h2>
+        <div class="stats">
+            <div class="stat">
+                <h3>Revenue</h3>
+                <div class="n" th:text="${#numbers.formatDecimal(monthRevenue, 1, 2)}">0.00</div>
+            </div>
+            <div class="stat">
+                <h3>Purchase Cost</h3>
+                <div class="n" th:text="${#numbers.formatDecimal(monthCost, 1, 2)}">0.00</div>
+            </div>
+            <div class="stat">
+                <h3>Expenses</h3>
+                <div class="n" th:text="${#numbers.formatDecimal(monthExpense, 1, 2)}">0.00</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 style="margin: 0 0 10px 0; font-size: 1.05rem;">Custom Range</h2>
+        <form method="get" th:action="@{/reports}" action="/reports" style="display:flex; gap:10px; flex-wrap:wrap; align-items:end; margin-bottom:12px;">
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                <label style="font-size: 0.85rem; color: var(--muted);">From</label>
+                <input type="date" name="from" th:value="${rangeFrom}">
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                <label style="font-size: 0.85rem; color: var(--muted);">To</label>
+                <input type="date" name="to" th:value="${rangeTo}">
+            </div>
+            <button class="btn" type="submit">Apply</button>
+        </form>
+
+        <div th:if="${!hasRange}" style="color: var(--muted);">Select a date range to view totals.</div>
+        <div th:if="${hasRange}">
+            <div style="color: var(--muted); margin-bottom: 10px;">
+                Showing <span th:text="${rangeFrom}">from</span> to <span th:text="${rangeTo}">to</span>
+            </div>
+            <div class="stats">
+                <div class="stat">
+                    <h3>Revenue</h3>
+                    <div class="n" th:text="${#numbers.formatDecimal(rangeRevenue, 1, 2)}">0.00</div>
+                </div>
+                <div class="stat">
+                    <h3>Purchase Cost</h3>
+                    <div class="n" th:text="${#numbers.formatDecimal(rangeCost, 1, 2)}">0.00</div>
+                </div>
+                <div class="stat">
+                    <h3>Expenses</h3>
+                    <div class="n" th:text="${#numbers.formatDecimal(rangeExpense, 1, 2)}">0.00</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 style="margin: 0 0 10px 0; font-size: 1.05rem;">Top Selling Products</h2>
+        <div th:if="${#lists.isEmpty(topProducts)}" style="color: var(--muted);">No data.</div>
+        <ol th:if="${!#lists.isEmpty(topProducts)}" style="margin: 0; padding-left: 20px;">
+            <li th:each="p : ${topProducts}" th:text="${p}">Product</li>
+        </ol>
+    </div>
+
+    <div class="card">
+        <h2 style="margin: 0 0 10px 0; font-size: 1.05rem;">Low Stock Items</h2>
+        <table>
+            <thead>
+            <tr>
+                <th style="width: 140px;">Product ID</th>
+                <th>Name</th>
+                <th style="width: 120px;">Quantity</th>
+                <th style="width: 120px;">Reorder</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(lowStock)}">
+                <td colspan="4" style="color: var(--muted); padding: 18px;">No low stock items.</td>
+            </tr>
+            <tr th:each="s : ${lowStock}">
+                <td class="mono" th:text="${s.productID}">P001</td>
+                <td th:text="${s.productName}">Product</td>
+                <td th:text="${s.quantity}">0</td>
+                <td th:text="${s.reorderLevel}">0</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
